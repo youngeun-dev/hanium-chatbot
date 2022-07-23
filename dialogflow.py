@@ -1,8 +1,8 @@
 from pymongo import MongoClient
-import datetime
-import json
 from flask import Flask, request
 app = Flask(__name__)
+
+import datetime
 
 client = MongoClient('localhost', 27017)
 db = client.chatbot
@@ -19,24 +19,31 @@ def webhook():
   
   query_result = req.get('queryResult')
  
-  if query_result.get('action') == 'ask.date' :
-    date1 = str(query_result.get('parameters').get('date'))
-    dateformat = '%Y-%m-%dT%H:%M:%S+09:00'
+   
+  if query_result.get('action') == 'ask.date' : #날짜로 질문했을 때
+    date1 = str(query_result.get('parameters').get('date-time'))  
+    dateformat = '%Y-%m-%dT%H:%M:%S+09:00' 
+    date_obj = datetime.datetime.strptime(date1, dateformat) #datetime으로 변환  
 
-    date_obj = datetime.datetime.strptime(date1, dateformat)
-    result=date_obj.strftime("%Y%m%d")
+    result=date_obj.strftime("%Y%m%d") #쿼리에 사용할 형식의 string으로 변환
     
-    title = collection.find( 
-        { "stdate" : {"$lte": result}},
+    title = collection.find( #db에서 날짜에 해당하는 data찾기
+        { "$and":[{"stdate" : {"$lte": result}},{"eddate" : {"$gte": result}}] }, 
         {"_id":0,"title":1})
-
+   
+    
     for i in title:
-        fulfillmentText=i['title']
-    return {"fulfillmentText": fulfillmentText,
-        "source": 'webhook'};
+        fulfillmentText+=i['title']+','
+
+    print(fulfillmentText)
+    return { 
+        "fulfillmentText": fulfillmentText,
+        "source":"webhook"
+        };
 
     
 
 if __name__ =='__main__':
     #port = int(os.getenv('PORT',80))
     app.run(host='0.0.0.0',port=5000)
+
