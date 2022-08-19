@@ -17,7 +17,9 @@ def hello():
 def webhook():
   req = request.get_json(force=True)
   fulfillmentText = ''
-  
+  thumbnail=''
+  genre=''
+  column=[]
   query_result = req.get('queryResult')
  
    
@@ -26,32 +28,23 @@ def webhook():
     dateformat = '%Y-%m-%dT%H:%M:%S+09:00' 
     date_obj = datetime.datetime.strptime(date1, dateformat) #datetime으로 변환  
 
-    result=date_obj.strftime("%Y%m%d") #쿼리에 사용할 형식의 string으로 변환
+    result=date_obj.strftime("%Y.%m.%d") #쿼리에 사용할 형식의 string으로 변환
     
     title = collection.find( #db에서 날짜에 해당하는 data찾기
         { "$and":[{"stdate" : {"$lte": result}},{"eddate" : {"$gte": result}}] }, 
-        {"_id":0,"title":1})
+        {"_id":0,"title":1,"poster":1,"genre":1}).limit(10)
    
     
     for i in title:
-        fulfillmentText+=i['title']+','
-
-    print(fulfillmentText)
-    return { 
-        "fulfillmentMessages": [
-        {
-        "payload": {
-            "line": { 
-            "type": "template",
-            "altText": "this is a carousel template",
-            "template": {
-                "type": "carousel",
-                "columns": [
-                {
-                    "thumbnailImageUrl": "https://example.com/bot/images/item1.jpg",
+        fulfillmentText=i['title']
+        thumbnail=i['poster']
+        genre=i['genre']
+        
+        col = {
+                    "thumbnailImageUrl": thumbnail,
                     "imageBackgroundColor": "#FFFFFF",
-                    "title": "this is menu",
-                    "text": "description",
+                    "title": fulfillmentText,
+                    "text": genre,
                     "defaultAction": {
                     "type": "uri",
                     "label": "View detail",
@@ -60,13 +53,8 @@ def webhook():
                     "actions": [
                     {
                         "type": "postback",
-                        "label": "Buy",
+                        "label": "More Information",
                         "data": "action=buy&itemid=111"
-                    },
-                    {
-                        "type": "postback",
-                        "label": "Add to cart",
-                        "data": "action=add&itemid=111"
                     },
                     {
                         "type": "uri",
@@ -74,46 +62,33 @@ def webhook():
                         "uri": "http://example.com/page/111"
                     }
                     ]
-                },
-                {
-                    "thumbnailImageUrl": "https://example.com/bot/images/item2.jpg",
-                    "imageBackgroundColor": "#000000",
-                    "title": "this is menu",
-                    "text": "description",
-                    "defaultAction": {
-                    "type": "uri",
-                    "label": "View detail",
-                    "uri": "http://example.com/page/222"
-                    },
-                    "actions": [
-                    {
-                        "type": "postback",
-                        "label": "Buy",
-                        "data": "action=buy&itemid=222"
-                    },
-                    {
-                        "type": "postback",
-                        "label": "Add to cart",
-                        "data": "action=add&itemid=222"
-                    },
-                    {
-                        "type": "uri",
-                        "label": "View detail",
-                        "uri": "http://example.com/page/222"
-                    }
-                    ]
-                }
-                ],
+        }
+        column.append(col);
+       
+    
+    #print(fulfillmentText)
+    #print(thumbnail)
+    #print(genre)
+    return { 
+        "fulfillmentMessages": [
+        {
+        "payload": {
+            "line": { 
+                "type": "template",
+                "altText": "this is a carousel template",
+                "template": {
+                    "type": "carousel",
+                    "columns": column,
                 "imageAspectRatio": "rectangle",
                 "imageSize": "cover"
-            }
+                }
             }
                     
         },
         "platform": "LINE"
         },
-    ]
-}
+        ]
+    }
 
     
 
