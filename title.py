@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 import json
 from flask import Flask, request
-
+ㅎ
 app = Flask(__name__)
 
 client = MongoClient('localhost', 27017)
