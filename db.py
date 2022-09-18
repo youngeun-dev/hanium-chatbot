@@ -1,7 +1,4 @@
-from flask import Flask, request, make_response, jsonify
 from pymongo import MongoClient
-import urllib
-import os
 import requests
 import json
 import xmltodict
