@@ -1,28 +1,17 @@
 import json
 from pymongo import MongoClient
-import datetime
 from flask import Flask, request
 app = Flask(__name__)
 
-client = MongoClient('mongodb+srv://hanieminha:performance888@haniemchatbot.pvxxz0o.mongodb.net/test')
+client = MongoClient('mongodb+srv://hanieminha:performance888@haniemchatbot.pvxxz0o.mongodb.net')
 db = client.chatbot
 collection = db.performance
-
-# open bubble_ex.json file
-with open('bubble_ex.json') as f:
-    json_object = json.load(f)
-
-assert json_object['type'] == 'bubble'
-
-# assert json_object['email'] == 'Sincere@april.biz'
-# assert json_object['address']['zipcode'] == '92998-3874'
-# assert json_object['admin'] is False
-# assert json_object['hobbies'] is None
 
 @app.route('/')
 def hello():
     return 'hello world'
    
+
 @app.route('/webhook',methods=['GET','POST'])
 def webhook():
   req = request.get_json(force=True)
@@ -33,15 +22,11 @@ def webhook():
   query_result = req.get('queryResult')
  
    
-  if query_result.get('action') == 'ask.date' : #날짜로 질문했을 때
-    date1 = str(query_result.get('parameters').get('date-time'))  
-    dateformat = '%Y-%m-%dT%H:%M:%S+09:00' 
-    date_obj = datetime.datetime.strptime(date1, dateformat) #datetime으로 변환  
+  if query_result.get('action') == 'ask.genre' : #장르로 질문했을 때
+    genre1 = str(query_result.get('parameters').get('genre'))    
 
-    result=date_obj.strftime("%Y.%m.%d") #쿼리에 사용할 형식의 string으로 변환
-    
-    title = collection.find( #db에서 날짜에 해당하는 data찾기
-        { "$and":[{"stdate" : {"$lte": result}},{"eddate" : {"$gte": result}}] }, 
+    title = collection.find( #db에서 장르에 해당하는 data찾기
+        { "$and":[{"genre" : {"$gnr": genre1}} ]}, 
         {"_id":0,"title":1,"poster":1,"genre":1}).limit(10)
    
     
@@ -93,6 +78,7 @@ def webhook():
                 "imageSize": "cover"
                 }
             }
+                    
         },
         "platform": "LINE"
         },
