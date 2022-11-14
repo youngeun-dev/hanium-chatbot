@@ -1,44 +1,245 @@
-from flask import Flask
+from asyncio.windows_events import NULL
 from pymongo import MongoClient
-import requests
-import json
-import xmltodict
+from flask import Flask, request
+app = Flask(__name__)
+from rank import ask_rank
+import datetime
 
-client = MongoClient('localhost', 27017)
+client = MongoClient("mongodb+srv://hanieminha:performance888@haniemchatbot.pvxxz0o.mongodb.net/test")
 db = client.chatbot
 collection = db.performance
 
-
-url = 'http://www.kopis.or.kr/openApi/restful/pblprfr'
-service_key="66122ee6118e42288de23913ed3f24fb"
-
-params = {  
-    'service' : service_key,
-        'stdate' : 20220101,
-        'eddate' : 20221231,
-        'rows' : 4000,
-        'cpage': 2
-}
-
-res = requests.get(url=url,params=params)
-data = res.text
-jsonString = json.dumps(xmltodict.parse(data), indent=4, ensure_ascii = False)
- 
-
-perfList = json.loads(jsonString)
-perfos = perfList["dbs"]
-perfosarray = perfos['db']
-
-for perf in perfosarray:
-    perfoID = perf["mt20id"]
-    title = perf["prfnm"]
-    stdate = perf["prfpdfrom"]
-    eddate = perf["prfpdto"]
-    genre = perf["genrenm"] 
-    concerthall = perf["fcltynm"]
-
-    perfo = {'perfoID':perfoID,'title':title, 'stdate':stdate ,'eddate':eddate ,
-         'genre':genre, 'concerthall':concerthall}
+@app.route('/')
+def hello():
+    return 'hello world'
+   
+@app.route('/webhook',methods=['GET','POST'])
+def webhook():
+    req = request.get_json(force=True)
+    fulfillmentText = ''
+    thumbnail=''
+    genre=''
+    column=[]
+    query_result = req.get('queryResult')
     
-    db.performance.insert_one(perfo)
+     # 순위 질문했을 때
+    if query_result.get('intent').get('displayName') == 'ask.rank':
+        return ask_rank()
     
+    if query_result.get('action') == 'ask.date' : #날짜로 질문했을 때
+            
+        date = str(query_result.get('parameters').get('date-time'))
+        if date.startswith('{') :
+            date1 = str(query_result.get('parameters').get('date-time').get('startDate'))
+            date2 = str(query_result.get('parameters').get('date-time').get('endDate')) 
+
+            dateformat = '%Y-%m-%dT%H:%M:%S+09:00' 
+            date_obj = datetime.datetime.strptime(date1, dateformat) #datetime으로 변환
+            date_obj2 = datetime.datetime.strptime(date2, dateformat) #datetime으로 변환  
+              
+
+            stDate = date_obj.strftime("%Y.%m.%d") #쿼리에 사용할 형식의 string으로 변환
+            edDate = date_obj2.strftime("%Y.%m.%d")
+            
+            title = collection.find( #db에서 날짜에 해당하는 data찾기
+                { "$and":[{"stdate" : {"$gte": stDate}},{"eddate" : {"$lte": edDate}}] }, 
+                {"_id":0,"title":1,"poster":1,"genre":1}).limit(10)
+            
+            for i in title:
+                #제목에 글자수 제한이 있음. 30넘으면 그냥 출력 pass
+                if len(i['title'])> 30:
+                    continue
+                
+                fulfillmentText=i['title']
+                thumbnail=i['poster']
+                genre=i['genre']
+                
+                col = {
+                "thumbnailImageUrl": thumbnail,
+                "imageBackgroundColor": "#FFFFFF",
+                "title": fulfillmentText,
+                "text": genre,
+                "defaultAction": {
+                "type": "uri",
+                "label": "View detail",
+                "uri": "http://example.com/page/123"
+                },
+                "actions": [
+                {
+                    "type": "message",
+                    "label": "View Detail",
+                    "text": fulfillmentText+" 세부 정보 알려줘", #누르면 세부정보 message보내지게함
+                },
+                {
+                    "type": "uri",
+                    "label": "View detail",
+                    "uri": "http://example.com/page/111"
+                }
+                ]
+                }
+                column.append(col);
+                
+        else : 
+            dateformat = '%Y-%m-%dT%H:%M:%S+09:00'
+            date_obj = datetime.datetime.strptime(date, dateformat) #datetime으로 변환  
+
+            result = date_obj.strftime("%Y.%m.%d") #쿼리에 사용할 형식의 string으로 변환
+            title = collection.find( #db에서 날짜에 해당하는 data찾기
+                { "$and":[{"stdate" : {"$lte": result}},{"eddate" : {"$gte": result}}] }, 
+                {"_id":0,"title":1,"poster":1,"genre":1}).limit(10)
+        
+            
+            for i in title:
+                #제목에 글자수 제한이 있음. 30넘으면 그냥 출력 pass
+                if len(i['title']) > 30:
+                    continue
+                
+                fulfillmentText=i['title']
+                thumbnail=i['poster']
+                genre=i['genre']
+
+                col = {
+                    "thumbnailImageUrl": thumbnail,
+                    "imageBackgroundColor": "#FFFFFF",
+                    "title": fulfillmentText,
+                    "text": genre,
+                    "defaultAction": {
+                    "type": "uri",
+                    "label": "View detail",
+                    "uri": "http://example.com/page/123"
+                    },
+                    "actions": [
+                    {
+                        "type": "message",
+                        "label": "View Detail",
+                        "text": fulfillmentText+" 세부 정보 알려줘", #누르면 세부정보 message보내지게함
+                    },
+                    {
+                        "type": "uri",
+                        "label": "View detail",
+                        "uri": "http://example.com/page/111"
+                    }
+                    ]
+                }
+                column.append(col);
+                
+        
+       
+    
+   
+    return { 
+        "fulfillmentMessages": [
+        {
+        "payload": {
+            "line": { 
+                "type": "template",
+                "altText": "this is a carousel template",
+                "template": {
+                    "type": "carousel",
+                    "columns": column,
+                "imageAspectRatio": "rectangle",
+                "imageSize": "cover"
+                },
+            },
+                    
+        },
+        "platform": "LINE"
+        },
+        {
+        "payload": {
+            "line": {
+                "type": "template",
+                "altText": "This is a buttons template",
+                "template": {
+                    "type": "buttons",
+                    "title": "More information",
+                    "text": "더많은 공연이 궁금하신가요?",
+                    "defaultAction": {
+                    "type": "message",
+                    "label": "공연 10개 더보기",
+                    "text": "공연 10개 더 보여줘"
+                    },
+                    "actions": [
+                    {
+                        "type": "message",
+                        "label": "공연 10개 더보기",
+                        "text": "공연 10개 더 보여줘" #누르면 세부정보 message보내지게함
+                    },
+                    ]
+                 },
+            },
+        },
+        "platform": "LINE"
+        }
+        ],
+    }
+
+
+    # 장르로 질문했을 때
+    if query_result.get('action') == 'ask.genre':  # 장르로 질문했을 때
+        genre1 = str(query_result.get('parameters').get('genre'))
+
+        title = collection.find(  # db에서 장르에 해당하는 data찾기
+            {"$and": [{"genre": {"$gnr": genre1}}]},
+            {"_id": 0, "title": 1, "poster": 1, "genre": 1}).limit(10)
+
+        for i in title:
+            fulfillmentText = i['title']
+            thumbnail = i['poster']
+            genre = i['genre']
+
+            col = {
+                "thumbnailImageUrl": thumbnail,
+                "imageBackgroundColor": "#FFFFFF",
+                "title": fulfillmentText,
+                "text": genre,
+                "defaultAction": {
+                    "type": "uri",
+                    "label": "View detail",
+                    "uri": "http://example.com/page/123"
+                },
+                "actions": [
+                    {
+                        "type": "postback",
+                        "label": "More Information",
+                        "data": "action=buy&itemid=111"
+                    },
+                    {
+                        "type": "uri",
+                        "label": "View detail",
+                        "uri": "http://example.com/page/111"
+                    }
+                ]
+            }
+            column.append(col);
+
+        # print(fulfillmentText)
+        # print(thumbnail)
+        # print(genre)
+        return {
+            "fulfillmentMessages": [
+                {
+                    "payload": {
+                        "line": {
+                            "type": "template",
+                            "altText": "this is a carousel template",
+                            "template": {
+                                "type": "carousel",
+                                "columns": column,
+                                "imageAspectRatio": "rectangle",
+                                "imageSize": "cover"
+                            }
+                        }
+
+                    },
+                    "platform": "LINE"
+                },
+            ]
+        }
+    
+if __name__ =='__main__':
+    #port = int(os.getenv('PORT',80))
+    app.run(host='0.0.0.0',port=5000)
+
+
+
