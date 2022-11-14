@@ -13,7 +13,7 @@ def ask_rank():
     for i in performance:
         fulfillmentText += i['rank'] + ". " + i['title'] + "\n"
         col = {
-            "thumbnailImageUrl": "https://example.com/bot/images/item1.jpg",
+            "thumbnailImageUrl": i['poster'],
             "imageBackgroundColor": "#FFFFFF",
             "title": i['title'],
             "text": i['rank'],
