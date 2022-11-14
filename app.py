@@ -1,4 +1,3 @@
-from asyncio.windows_events import NULL
 from pymongo import MongoClient
 from flask import Flask, request
 app = Flask(__name__)

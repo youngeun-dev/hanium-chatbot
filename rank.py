@@ -12,8 +12,6 @@ def ask_rank():
 
     for i in performance:
         fulfillmentText += i['rank'] + ". " + i['title'] + "\n"
-        
-     
         col = {
             "thumbnailImageUrl": i['poster'],
             "imageBackgroundColor": "#FFFFFF",
