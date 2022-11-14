@@ -26,6 +26,69 @@ def webhook():
     if query_result.get('intent').get('displayName') == 'ask.rank':
         return ask_rank()
     
+    if query_result.get('action') == 'ask.genre' : #장르로 질문했을 때
+        genre1 = str(query_result.get('parameters').get('genre'))    
+
+        title = collection.find( #db에서 장르에 해당하는 data찾기
+            { "$and":[{"genre" : {"$gnr": genre1}} ]}, 
+            {"_id":0,"title":1,"poster":1,"genre":1}).limit(10)
+    
+        
+        for i in title:
+            fulfillmentText=i['title']
+            thumbnail=i['poster']
+            genre=i['genre']
+            
+            col = {
+                        "thumbnailImageUrl": thumbnail,
+                        "imageBackgroundColor": "#FFFFFF",
+                        "title": fulfillmentText,
+                        "text": genre,
+                        "defaultAction": {
+                        "type": "uri",
+                        "label": "View detail",
+                        "uri": "http://example.com/page/123"
+                        },
+                        "actions": [
+                        {
+                            "type": "postback",
+                            "label": "More Information",
+                            "data": "action=buy&itemid=111"
+                        },
+                        {
+                            "type": "uri",
+                            "label": "View detail",
+                            "uri": "http://example.com/page/111"
+                        }
+                        ]
+            }
+        column.append(col);
+        
+        
+        #print(fulfillmentText)
+        #print(thumbnail)
+        #print(genre)
+        return { 
+            "fulfillmentMessages": [
+            {
+            "payload": {
+                "line": { 
+                    "type": "template",
+                    "altText": "this is a carousel template",
+                    "template": {
+                        "type": "carousel",
+                        "columns": column,
+                    "imageAspectRatio": "rectangle",
+                    "imageSize": "cover"
+                    }
+                }
+                        
+            },
+            "platform": "LINE"
+            },
+            ]
+        }
+    #날짜 질문 했을 때
     if query_result.get('action') == 'ask.date' : #날짜로 질문했을 때
             
         date = str(query_result.get('parameters').get('date-time'))
@@ -127,53 +190,53 @@ def webhook():
        
     
    
-    return { 
-        "fulfillmentMessages": [
-        {
-        "payload": {
-            "line": { 
-                "type": "template",
-                "altText": "this is a carousel template",
-                "template": {
-                    "type": "carousel",
-                    "columns": column,
-                "imageAspectRatio": "rectangle",
-                "imageSize": "cover"
-                },
-            },
-                    
-        },
-        "platform": "LINE"
-        },
-        {
-        "payload": {
-            "line": {
-                "type": "template",
-                "altText": "This is a buttons template",
-                "template": {
-                    "type": "buttons",
-                    "title": "More information",
-                    "text": "더많은 공연이 궁금하신가요?",
-                    "defaultAction": {
-                    "type": "message",
-                    "label": "공연 10개 더보기",
-                    "text": "공연 10개 더 보여줘"
+        return { 
+            "fulfillmentMessages": [
+            {
+            "payload": {
+                "line": { 
+                    "type": "template",
+                    "altText": "this is a carousel template",
+                    "template": {
+                        "type": "carousel",
+                        "columns": column,
+                    "imageAspectRatio": "rectangle",
+                    "imageSize": "cover"
                     },
-                    "actions": [
-                    {
+                },
+                        
+            },
+            "platform": "LINE"
+            },
+            {
+            "payload": {
+                "line": {
+                    "type": "template",
+                    "altText": "This is a buttons template",
+                    "template": {
+                        "type": "buttons",
+                        "title": "More information",
+                        "text": "더많은 공연이 궁금하신가요?",
+                        "defaultAction": {
                         "type": "message",
                         "label": "공연 10개 더보기",
-                        "text": "공연 10개 더 보여줘" #누르면 세부정보 message보내지게함
+                        "text": "공연 10개 더 보여줘"
+                        },
+                        "actions": [
+                        {
+                            "type": "message",
+                            "label": "공연 10개 더보기",
+                            "text": "공연 10개 더 보여줘" #누르면 세부정보 message보내지게함
+                        },
+                        ]
                     },
-                    ]
-                 },
+                },
             },
-        },
-        "platform": "LINE"
+            "platform": "LINE"
+            }
+            ],
         }
-        ],
-    }
-    
+        
 if __name__ =='__main__':
     #port = int(os.getenv('PORT',80))
     app.run(host='0.0.0.0',port=5000)
