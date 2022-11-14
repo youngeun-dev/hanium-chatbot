@@ -1,4 +1,3 @@
-from asyncio.windows_events import NULL
 from pymongo import MongoClient
 from flask import Flask, request
 app = Flask(__name__)
@@ -178,7 +177,7 @@ def webhook():
     # 장르로 질문했을 때
     if query_result.get('action') == 'ask.genre':  # 장르로 질문했을 때
         find_genre = str(query_result.get('parameters').get('genre'))
-        title = list(collection.find({"genre": find_genre},{"_id": False}))
+        title = list(db.performance.find({"genre": find_genre},{"_id": False}))
 
         for i in title:
             fulfillmentText = i['title']

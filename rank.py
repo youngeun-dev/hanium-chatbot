@@ -12,8 +12,14 @@ def ask_rank():
 
     for i in performance:
         fulfillmentText += i['rank'] + ". " + i['title'] + "\n"
+
+        if i['poster'] is not None:
+            poster = i['poster']
+        else:
+            poster = "https://example.com/bot/images/item1.jpg"
+
         col = {
-            "thumbnailImageUrl": i['poster'],
+            "thumbnailImageUrl": poster,
             "imageBackgroundColor": "#FFFFFF",
             "title": i['title'],
             "text": i['rank'],
