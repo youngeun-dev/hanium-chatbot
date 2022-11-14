@@ -177,11 +177,8 @@ def webhook():
 
     # 장르로 질문했을 때
     if query_result.get('action') == 'ask.genre':  # 장르로 질문했을 때
-        genre1 = str(query_result.get('parameters').get('genre'))
-
-        title = collection.find(  # db에서 장르에 해당하는 data찾기
-            {"$and": [{"genre": {"$gnr": genre1}}]},
-            {"_id": 0, "title": 1, "poster": 1, "genre": 1}).limit(10)
+        find_genre = str(query_result.get('parameters').get('genre'))
+        title = list(collection.find({"genre": find_genre},{"_id": False}))
 
         for i in title:
             fulfillmentText = i['title']
