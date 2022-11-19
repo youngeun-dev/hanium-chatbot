@@ -28,22 +28,14 @@ def ask_genre(find_genre):
             },
             "actions": [
                 {
-                    "type": "postback",
-                    "label": "More Information",
-                    "data": "action=buy&itemid=111"
+                    "type": "message",
+                    "label": "공연 세부정보 알아보기",
+                    "text": fulfillmentText + " 정보 알려줘"  #누르면 세부정보 message보내지게함
                 },
-                {
-                    "type": "uri",
-                    "label": "View detail",
-                    "uri": "http://example.com/page/111"
-                }
             ]
         }
         column.append(col);
 
-    # print(fulfillmentText)
-    # print(thumbnail)
-    # print(genre)
     return {
         "fulfillmentMessages": [
             {

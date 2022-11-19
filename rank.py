@@ -4,13 +4,15 @@ client = MongoClient("mongodb+srv://hanieminha:performance888@haniemchatbot.pvxx
 db = client.chatbot
 collection = db.rank
 
+#RANK DB에서 10위까지 찾아서 출력
 def ask_rank():
     fulfillmentText = ''
     column = []
-
+    title=''
     performance = db.rank.find().limit(10)
 
     for i in performance:
+        title=i['title']
         fulfillmentText += i['rank'] + ". " + i['title'] + "\n"
         col = {
             "thumbnailImageUrl": i['poster'],
@@ -24,15 +26,10 @@ def ask_rank():
             },
             "actions": [
                 {
-                    "type": "postback",
-                    "label": "공연 예매",
-                    "data": "action=buy&itemid=111"
+                    "type": "message",
+                    "label": "공연 세부정보 알아보기",
+                    "text": title + " 정보 알려줘"
                 },
-                {
-                    "type": "uri",
-                    "label": "자세히 보기",
-                    "uri": "http://example.com/page/111"
-                }
             ]
         }
         column.append(col)

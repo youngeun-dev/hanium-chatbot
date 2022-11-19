@@ -29,7 +29,6 @@ def ask_date1(date):
         fulfillmentText=i['title']
         thumbnail=i['poster']
         genre=i['genre']
-        print(fulfillmentText)
         col = {
             "thumbnailImageUrl": thumbnail,
             "imageBackgroundColor": "#FFFFFF",
@@ -69,32 +68,6 @@ def ask_date1(date):
         },
         "platform": "LINE"
         },
-        {
-        "payload": {
-            "line": {
-                "type": "template",
-                "altText": "This is a buttons template",
-                "template": {
-                    "type": "buttons",
-                    "title": "More information",
-                    "text": "더많은 공연이 궁금하신가요?",
-                    "defaultAction": {
-                    "type": "message",
-                    "label": "공연 10개 더보기",
-                    "text": "공연 10개 더 보여줘"
-                    },
-                    "actions": [
-                    {
-                        "type": "message",
-                        "label": "공연 10개 더보기",
-                        "text": " 공연 10개 더 보여줘" #누르면 세부정보 message 보내지게함
-                    },
-                    ]
-                },
-            },
-        },
-        "platform": "LINE"
-        }
         ],
     }
     
@@ -136,17 +109,12 @@ def ask_date2(date1,date2):
         "uri": "http://example.com/page/123"
         },
         "actions": [
-        {
-            "type": "message",
-            "label": "View Detail",
-            "text": fulfillmentText+" 세부 정보 알려줘", #누르면 세부정보 message보내지게함
-        },
-        {
-            "type": "uri",
-            "label": "View detail",
-            "uri": "http://example.com/page/111"
-        }
-        ]
+                {
+                    "type": "message",
+                    "label": "공연 세부정보 알아보기",
+                    "text": fulfillmentText + " 정보 알려줘"  #누르면 세부정보 message보내지게함
+                },
+            ]
         }
         column.append(col);
         
@@ -163,37 +131,11 @@ def ask_date2(date1,date2):
                     "imageAspectRatio": "rectangle",
                     "imageSize": "cover"
                     },
-                },
-                        
+                },     
             },
             "platform": "LINE"
             },
-            {
-            "payload": {
-                "line": {
-                    "type": "template",
-                    "altText": "This is a buttons template",
-                    "template": {
-                        "type": "buttons",
-                        "title": "More information",
-                        "text": "더많은 공연이 궁금하신가요?",
-                        "defaultAction": {
-                        "type": "message",
-                        "label": "공연 10개 더보기",
-                        "text": "공연 10개 더 보여줘"
-                        },
-                        "actions": [
-                        {
-                            "type": "message",
-                            "label": "공연 10개 더보기",
-                            "text": " 공연 10개 더 보여줘" #누르면 세부정보 message 보내지게함
-                        },
-                        ]
-                    },
-                },
-            },
-            "platform": "LINE"
-            }
+            
             ],
         }
         

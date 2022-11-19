@@ -1,7 +1,5 @@
-from flask import Flask
+#HTTPS만 지원하기 때문에 HTTP 다음 S를 붙여줌
 from pymongo import MongoClient
-import requests
-
 
 client = MongoClient('localhost', 27017)
 db = client.chatbot
