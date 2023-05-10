@@ -17,3 +17,5 @@
 
 ### 🍕 실행 화면
 [![Video Label](http://img.youtube.com/vi/oWUrbXub3lE/3.jpg)](https://youtu.be/oWUrbXub3lE)
+<br>
+https://youtu.be/oWUrbXub3lE
